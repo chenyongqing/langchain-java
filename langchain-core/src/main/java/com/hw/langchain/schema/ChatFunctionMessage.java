@@ -18,42 +18,43 @@
 
 package com.hw.langchain.schema;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Type of message that is spoken by the AI.
+ * Type of message with arbitrary speaker.
+ *
  * @author HamaWhite
  */
+@Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Data
-public class AIMessage extends BaseMessage {
+public class ChatFunctionMessage extends BaseMessage {
 
-    @JsonAlias("function_call")
-    private String functionCall;
+    private String name;
 
-    public AIMessage(String content) {
+    private String arguments;
+
+    public ChatFunctionMessage(String name, String content, String arguments) {
         super(content);
+        this.name = name;
+        this.arguments = arguments;
     }
 
-    public AIMessage(String content, String functionCall) {
-        super(content);
-        this.functionCall = functionCall;
+    public ChatFunctionMessage(String name, String arguments) {
+        super(name);
+        this.arguments = arguments;
     }
 
     @Override
     public String type() {
-        return "ai";
+        return "chat_function";
     }
 
     @Override
     public String toString() {
-        return "AIMessage{" +
-                "content='" + content + '\'' +
-                ", additionalKwargs=" + additionalKwargs +
-                '}';
+        return JSONObject.toJSONString(this);
     }
 }

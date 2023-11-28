@@ -23,7 +23,9 @@ import com.hw.langchain.agents.agent.AgentOutputParser;
 import com.hw.langchain.agents.chat.output.parser.ChatOutputParser;
 import com.hw.langchain.agents.initialize.Initialize;
 import com.hw.langchain.base.language.BaseLanguageModel;
+import com.hw.langchain.chains.conversation.base.ConversationChain;
 import com.hw.langchain.chains.llm.LLMChain;
+import com.hw.langchain.memory.buffer.ConversationBufferMemory;
 import com.hw.langchain.prompts.base.BasePromptTemplate;
 import com.hw.langchain.prompts.chat.BaseMessagePromptTemplate;
 import com.hw.langchain.prompts.chat.ChatPromptTemplate;
@@ -127,6 +129,10 @@ public class ChatAgent extends Agent {
         var prompt = createPrompt(tools, systemMessagePrefix, systemMessageSuffix, humanMessage, formatInstructions,
                 inputVariables);
         var llmChain = new LLMChain(llm, prompt);
+
+
+//        var memory = new ConversationBufferMemory(true);
+//        var conversation = new ConversationChain(llm, prompt, memory);
 
         var toolNames = tools.stream().map(BaseTool::getName).toList();
         outputParser = (outputParser != null) ? outputParser : getDefaultOutputParser(kwargs);

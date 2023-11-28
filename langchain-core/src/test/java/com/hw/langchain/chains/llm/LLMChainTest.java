@@ -18,6 +18,9 @@
 
 package com.hw.langchain.chains.llm;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.hw.langchain.base.language.BaseLanguageModel;
 import com.hw.langchain.chains.base.Chain;
 import com.hw.langchain.chat.models.openai.ChatOpenAI;
@@ -26,19 +29,13 @@ import com.hw.langchain.prompts.chat.ChatPromptTemplate;
 import com.hw.langchain.prompts.chat.HumanMessagePromptTemplate;
 import com.hw.langchain.prompts.chat.SystemMessagePromptTemplate;
 import com.hw.langchain.prompts.prompt.PromptTemplate;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import reactor.core.publisher.Flux;
-
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 
 /**
  * LLMChainTest
@@ -52,35 +49,42 @@ class LLMChainTest {
 
     private static BaseLanguageModel chat;
 
+    private static final String OPENAI_API_KEY = "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";
+    private static final String SERPAPI_API_KEY = "18401c486d0920d206d7abd8dc51a2d7e6047b65341ece53cefa6960870eee7d";
+
     @BeforeAll
     public static void setup() throws SQLException {
         llm = OpenAI.builder()
-                .temperature(0)
-                .build()
-                .init();
+            .openaiApiKey(OPENAI_API_KEY)
+            .temperature(0)
+            .build()
+            .init();
 
         chat = ChatOpenAI.builder()
-                .temperature(0)
-                .build()
-                .init();
+            .openaiApiKey(OPENAI_API_KEY)
+            .temperature(0)
+            .build()
+            .init();
     }
 
     @Test
     void testLLMChainWithOneInputVariables() {
         PromptTemplate prompt = new PromptTemplate(List.of("product"),
-                "What is a good name for a company that makes {product}?");
+            "What is a good name for a company that makes {product}?");
 
         Chain chain = new LLMChain(llm, prompt);
         String actual = chain.run("colorful socks");
 
         String expected = "\n\nSocktastic!";
         assertEquals(expected, actual);
+
+        System.out.println(actual);
     }
 
     @Test
     void testAsyncRun() {
         PromptTemplate prompt = new PromptTemplate(List.of("product"),
-                "What is a good name for a company that makes {product}?");
+            "What is a good name for a company that makes {product}?");
 
         Chain chain = new LLMChain(llm, prompt);
         Flux<String> actual = chain.asyncRun("colorful socks");
@@ -93,7 +97,7 @@ class LLMChainTest {
     @Test
     void testLLMChainWithMultipleInputVariables() {
         PromptTemplate prompt = new PromptTemplate(List.of("company", "product"),
-                "What is a good name for {company} that makes {product}?");
+            "What is a good name for {company} that makes {product}?");
 
         Chain chain = new LLMChain(llm, prompt);
         String actual = chain.run(Map.of("company", "ABC Startup", "product", "colorful socks"));
@@ -105,61 +109,61 @@ class LLMChainTest {
     @Test
     void testLLMChainForNLP2SQL() {
         String template =
-                """
-                        You are a H2 expert. Given an input question, first create a syntactically correct H2 query to run, then look at the results of the query and return the answer to the input question.
-                        Unless the user specifies in the question a specific number of examples to obtain, query for at most 5 results using the LIMIT clause as per H2. You can order the results to return the most informative data in the database.
-                        Never query for all columns from a table. You must query only the columns that are needed to answer the question. Wrap each column name in backticks (`) to denote them as delimited identifiers.
-                        Pay attention to use only the column names you can see in the tables below. Be careful to not query for columns that do not exist. Also, pay attention to which column is in which table.
-                        Pay attention to use CURDATE() function to get the current date, if the question involves "today".
+            """
+                You are a H2 expert. Given an input question, first create a syntactically correct H2 query to run, then look at the results of the query and return the answer to the input question.
+                Unless the user specifies in the question a specific number of examples to obtain, query for at most 5 results using the LIMIT clause as per H2. You can order the results to return the most informative data in the database.
+                Never query for all columns from a table. You must query only the columns that are needed to answer the question. Wrap each column name in backticks (`) to denote them as delimited identifiers.
+                Pay attention to use only the column names you can see in the tables below. Be careful to not query for columns that do not exist. Also, pay attention to which column is in which table.
+                Pay attention to use CURDATE() function to get the current date, if the question involves "today".
 
-                        Use the following format:
+                Use the following format:
 
-                        Question: Question here
-                        SQLQuery: SQL Query to run
-                        SQLResult: Result of the SQLQuery
-                        Answer: Final answer here
+                Question: Question here
+                SQLQuery: SQL Query to run
+                SQLResult: Result of the SQLQuery
+                Answer: Final answer here
 
-                        Only use the following tables:
+                Only use the following tables:
 
-                        CREATE TABLE parents (
-                        	id INTEGER(32),
-                        	student_name CHARACTER VARYING(64),
-                        	parent_name CHARACTER VARYING(64),
-                        	parent_mobile CHARACTER VARYING(16)
-                        )
+                CREATE TABLE parents (
+                	id INTEGER(32),
+                	student_name CHARACTER VARYING(64),
+                	parent_name CHARACTER VARYING(64),
+                	parent_mobile CHARACTER VARYING(16)
+                )
 
-                        /*
-                        3 rows from parents table:
-                        id	student_name	parent_name	parent_mobile
-                        1	Alex	Barry	088121
-                        2	Alice	Jessica	088122
-                        3	Jack	Simon	088123
-                        */
+                /*
+                3 rows from parents table:
+                id	student_name	parent_name	parent_mobile
+                1	Alex	Barry	088121
+                2	Alice	Jessica	088122
+                3	Jack	Simon	088123
+                */
 
 
-                        CREATE TABLE students (
-                        	id INTEGER(32),
-                        	name CHARACTER VARYING(64),
-                        	score INTEGER(32) COMMENT 'math score',
-                        	teacher_note CHARACTER VARYING(256)
-                        ) COMMENT 'student score table'
+                CREATE TABLE students (
+                	id INTEGER(32),
+                	name CHARACTER VARYING(64),
+                	score INTEGER(32) COMMENT 'math score',
+                	teacher_note CHARACTER VARYING(256)
+                ) COMMENT 'student score table'
 
-                        /*
-                        3 rows from students table:
-                        id	name	score	teacher_note
-                        1	Alex	100	Alex did perfectly every day in the class.
-                        2	Alice	70	Alice needs a lot of improvements.
-                        3	Jack	75	Event it is not the best, Jack has already improved.
-                        */
+                /*
+                3 rows from students table:
+                id	name	score	teacher_note
+                1	Alex	100	Alex did perfectly every day in the class.
+                2	Alice	70	Alice needs a lot of improvements.
+                3	Jack	75	Event it is not the best, Jack has already improved.
+                */
 
-                        Question: Who got zero score? Show me her parent's contact information.
-                        SQLQuery:""";
+                Question: Who got zero score? Show me her parent's contact information.
+                SQLQuery:""";
         PromptTemplate prompt = new PromptTemplate(List.of(), template);
 
         Chain chain = new LLMChain(llm, prompt);
         String actual = chain.run(Map.of("stop", List.of("\nSQLResult:")));
         String expected =
-                " SELECT `parent_name`, `parent_mobile` FROM `parents` WHERE `student_name` IN (SELECT `name` FROM `students` WHERE `score` = 0) LIMIT 5;";
+            " SELECT `parent_name`, `parent_mobile` FROM `parents` WHERE `student_name` IN (SELECT `name` FROM `students` WHERE `score` = 0) LIMIT 5;";
         assertEquals(expected, actual);
     }
 
@@ -175,8 +179,8 @@ class LLMChainTest {
 
         var chain = new LLMChain(chat, chatPrompt);
         String actual = chain.run(Map.of("input_language", "English",
-                "output_language", "French",
-                "text", "I love programming."));
+            "output_language", "French",
+            "text", "I love programming."));
 
         String expected = "J'adore la programmation.";
         assertEquals(expected, actual);

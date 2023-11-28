@@ -18,7 +18,10 @@
 
 package com.hw.langchain.agents.load.tools;
 
+import static com.hw.langchain.chains.api.meteo.OpenMeteoDocs.OPEN_METEO_DOCS;
+
 import com.hw.langchain.base.language.BaseLanguageModel;
+import com.hw.langchain.chains.api.base.ApiChain;
 import com.hw.langchain.chains.llm.math.base.LLMMathChain;
 import com.hw.langchain.tools.base.BaseTool;
 import com.hw.langchain.tools.base.Tool;
@@ -46,18 +49,26 @@ public class LoadTools {
                 LLMMathChain.fromLLM(llm)::run);
     }
 
+    //加载天气工具
+    public static BaseTool getWeather(BaseLanguageModel llm) {
+        return new Tool("Weather",
+                "A weather tool. Useful for when you need to answer questions about weather. Input should be a city name.",
+            ApiChain.fromLlmAndApiDocs(llm, OPEN_METEO_DOCS)::run);
+    }
+
     public static BaseTool getSerpapi(Map<String, Object> kwargs) {
         return new Tool("Search",
                 "A search engine. Useful for when you need to answer questions about current events. Input should be a search query.",
                 SerpAPIWrapper.of(kwargs)::run);
     }
-
     private static Map<String, Pair<Function<Map<String, Object>, BaseTool>, List<String>>> _EXTRA_OPTIONAL_TOOLS =
             Map.of(
-                    "serpapi", Pair.of(LoadTools::getSerpapi, List.of("serpapi_api_key", "aiosession")));
+                    "serpapi", Pair.of(LoadTools::getSerpapi, List.of("serpapi_api_key", "18401c486d0920d206d7abd8dc51a2d7e6047b65341ece53cefa6960870eee7d")));
 
     private static Map<String, Function<BaseLanguageModel, BaseTool>> _LLM_TOOLS = Map.of(
-            "llm-math", LoadTools::getLLMMath);
+            "llm-math", LoadTools::getLLMMath,
+            "llm-weather", LoadTools::getWeather
+    );
 
     public static List<BaseTool> loadTools(List<String> toolNames, BaseLanguageModel llm) {
         return loadTools(toolNames, llm, Map.of());

@@ -19,16 +19,19 @@
 package com.hw.langchain.requests;
 
 import com.google.gson.Gson;
-
-import okhttp3.*;
-
 import java.io.IOException;
 import java.util.Map;
+import okhttp3.FormBody;
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
- * Wrapper around requests to handle auth and async.
- * The main purpose of this wrapper is to handle authentication (by saving headers)
- * and enable easy async methods on the same base object.
+ * Wrapper around requests to handle auth and async. The main purpose of this wrapper is to handle authentication (by
+ * saving headers) and enable easy async methods on the same base object.
  *
  * @author HamaWhite
  */
@@ -45,7 +48,7 @@ public class Requests {
 
     private Request buildRequest(String url, RequestBody body, String method) {
         Request.Builder builder = new Request.Builder()
-                .url(url);
+            .url(url);
 
         if (headers != null) {
             builder.headers(Headers.of(headers));
@@ -63,8 +66,19 @@ public class Requests {
 
         if (data != null) {
             MediaType mediaType = MediaType.parse("application/json");
-            String jsonBody = new Gson().toJson(data);
-            body = RequestBody.create(mediaType, jsonBody);
+            if (headers != null && headers.containsKey("Content-Type") && headers.get("Content-Type")
+                .equals("application/x-www-form-urlencoded")) {
+                // application/x-www-form-urlencoded
+                FormBody.Builder formBodyBuilder = new FormBody.Builder();
+                for (Map.Entry<String, Object> entry : data.entrySet()) {
+                    formBodyBuilder.add(entry.getKey(), entry.getValue().toString());
+                }
+                body = formBodyBuilder.build();
+            } else {
+                String jsonBody = new Gson().toJson(data);
+                body = RequestBody.create(mediaType, jsonBody);
+            }
+
         }
 
         Request request = buildRequest(url, body, method);

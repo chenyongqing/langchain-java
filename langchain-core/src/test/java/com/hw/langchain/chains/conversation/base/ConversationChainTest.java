@@ -18,6 +18,8 @@
 
 package com.hw.langchain.chains.conversation.base;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import com.hw.langchain.chat.models.openai.ChatOpenAI;
 import com.hw.langchain.llms.openai.OpenAI;
 import com.hw.langchain.memory.buffer.ConversationBufferMemory;
@@ -25,16 +27,12 @@ import com.hw.langchain.prompts.chat.ChatPromptTemplate;
 import com.hw.langchain.prompts.chat.HumanMessagePromptTemplate;
 import com.hw.langchain.prompts.chat.MessagesPlaceholder;
 import com.hw.langchain.prompts.chat.SystemMessagePromptTemplate;
-
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author HamaWhite
@@ -44,12 +42,14 @@ class ConversationChainTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConversationChainTest.class);
 
+    private static final String OPENAI_API_KEY = "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";
+
     @Test
     void testConversationChainWithLLM() {
         var llm = OpenAI.builder()
-                .temperature(0)
-                .build()
-                .init();
+            .temperature(0)
+            .build()
+            .init();
 
         var conversation = new ConversationChain(llm);
 
@@ -65,20 +65,22 @@ class ConversationChainTest {
     @Test
     void testConversationChainWithChatModel() {
         var prompt = ChatPromptTemplate.fromMessages(List.of(
-                SystemMessagePromptTemplate.fromTemplate(
-                        "The following is a friendly conversation between a human and an AI. The AI is talkative and " +
-                                "provides lots of specific details from its context. If the AI does not know the " +
-                                "answer to a question, it truthfully says it does not know."),
-                new MessagesPlaceholder("history"),
-                HumanMessagePromptTemplate.fromTemplate("{input}")));
+            SystemMessagePromptTemplate.fromTemplate(
+                "The following is a friendly conversation between a human and an AI. The AI is talkative and " +
+                    "provides lots of specific details from its context. If the AI does not know the " +
+                    "answer to a question, it truthfully says it does not know."),
+            new MessagesPlaceholder("history"),
+            HumanMessagePromptTemplate.fromTemplate("{input}")));
 
-        var chat = ChatOpenAI.builder().temperature(0).build().init();
+        var chat = ChatOpenAI.builder().openaiApiKey(OPENAI_API_KEY).temperature(0).build().init();
         var memory = new ConversationBufferMemory(true);
         var conversation = new ConversationChain(chat, prompt, memory);
 
         var output1 = conversation.predict(Map.of("input", "Hi there!"));
+
+        var res = conversation.run(Map.of("input", "Hi there!"));
         // Hello! How can I assist you today?
-        LOG.info("output1: \n{}", output1);
+        LOG.info("output1: {}\n{}", res, output1);
         assertNotNull(output1, "output1 should not be null");
 
         var output2 = conversation.predict(Map.of("input", "I'm doing well! Just having a conversation with an AI."));

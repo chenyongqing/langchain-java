@@ -18,15 +18,15 @@
 
 package com.hw.openai.example.chat;
 
+import static com.hw.langchain.examples.utils.PrintUtils.println;
+
 import com.hw.langchain.examples.runner.RunnableExample;
 import com.hw.openai.OpenAiClient;
+import com.hw.openai.common.OpenaiApiType;
 import com.hw.openai.entity.chat.ChatCompletion;
 import com.hw.openai.entity.chat.ChatCompletionResp;
 import com.hw.openai.entity.chat.Message;
-
 import java.util.List;
-
-import static com.hw.langchain.examples.utils.PrintUtils.println;
 
 /**
  * @author HamaWhite
@@ -36,16 +36,21 @@ public class ChatCompletionExample {
 
     public static void main(String[] args) {
         OpenAiClient client = OpenAiClient.builder()
-                .requestTimeout(120)
-                .build()
-                .init();
+            .openaiApiKey("ee439e2527214b0e880ab4da6f410ff2")
+            .openaiApiType(OpenaiApiType.AZURE)
+            .openaiApiBase("https://tomasliu.openai.azure.com/")
+            .openaiApiVersion("2023-07-01-preview")
+            .requestTimeout(120)
+            .build()
+            .init();
 
+//        ee439e2527214b0e880ab4da6f410ff2
         Message message = Message.of("Introduce West Lake in Hangzhou, China.");
         ChatCompletion chatCompletion = ChatCompletion.builder()
-                .model("gpt-4")
-                .temperature(0)
-                .messages(List.of(message))
-                .build();
+            .model("gpt-4-32k")
+            .temperature(0)
+            .messages(List.of(message))
+            .build();
 
         ChatCompletionResp response = client.createChatCompletion(chatCompletion);
         println(response.getChoices().get(0).getMessage().getContent());

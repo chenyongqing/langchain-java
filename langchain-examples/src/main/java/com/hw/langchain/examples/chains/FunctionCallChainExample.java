@@ -16,82 +16,55 @@
  * limitations under the License.
  */
 
-package com.hw.openai;
+package com.hw.langchain.examples.chains;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.hw.langchain.examples.utils.PrintUtils.println;
 
+import com.alibaba.fastjson.JSONObject;
+import com.hw.langchain.chains.functioncall.base.FunctionCallChain;
+import com.hw.langchain.chat.models.openai.ChatOpenAI;
+import com.hw.langchain.examples.runner.RunnableExample;
+import com.hw.langchain.schema.ChatFunctionMessage;
 import com.hw.openai.common.OpenaiApiType;
-import com.hw.openai.entity.chat.ChatCompletion;
-import com.hw.openai.entity.chat.ChatCompletionResp;
 import com.hw.openai.entity.chat.ChatFunction;
 import com.hw.openai.entity.chat.ChatFunction.ChatParameter;
-import com.hw.openai.entity.chat.Message;
-import com.hw.openai.entity.completions.Completion;
-import com.hw.openai.entity.embeddings.Embedding;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
 /**
- * @author Tingliang Wang
+ * @author HamaWhite
  */
-@Disabled("Test requires costly Azure OpenAI calls, can be run manually.")
-class AzureOpenAiClientTest {
+@RunnableExample
+public class FunctionCallChainExample {
 
-    private static OpenAiClient client;
-
-//    var openAi = ChatOpenAI.builder()
-//        .openaiApiKey("9187dc878e614661bc70d3964145b05d")
-//        .openaiApiType(OpenaiApiType.AZURE)
-//        .openaiApiBase("https://chatgpt-test-guonei.openai.azure.com/")
-//        .openaiApiVersion("2023-07-01-preview")
-//        .model("gpt-4")
-//        .temperature(0)
-//        .requestTimeout(30000).build().init();
-    @BeforeAll
-    static void setup() {
-        client = OpenAiClient.builder()
-            .openaiApiKey("9187dc878e614661bc70d3964145b05d")
+    public static void main(String[] args) {
+        var chat = ChatOpenAI.builder()
+            .temperature(0)
+            .openaiApiKey("4b33f3c7a40e40cd9062c19ca3b3e425")
             .openaiApiVersion("2023-07-01-preview")
             .openaiApiType(OpenaiApiType.AZURE)
-            .openaiApiBase("https://chatgpt-test-guonei.openai.azure.com/")
+            .openaiApiBase("https://jayr110.openai.azure.com/")
             .requestTimeout(9000)
+            .model("gpt35-16k")
             .build()
             .init();
+
+        List<ChatFunctionMessage> functions = getFunctions();
+
+        var chain = new FunctionCallChain(chat, functions);
+        var result = chain
+            .run(Map.of("input", "I want to know the top 10 frontend margin of article about 1001 store yesterday."));
+
+
+        println(result);
+        result = chain.run(Map.of("input", "ok, what can you do."));
+        println(result);
     }
 
-    @AfterAll
-    static void cleanup() {
-        client.close();
-    }
 
-    @Test
-    void testCompletion() {
-        Completion completion = Completion.builder()
-            .model("text-davinci-003")
-            .prompt(List.of("Say this is a test"))
-            .maxTokens(700)
-            .temperature(0)
-            .build();
-
-        assertThat(client.completion(completion)).isEqualTo("This is indeed a test.");
-    }
-
-    @Test
-    void testChatCompletion() {
-//        Message message = Message.of("Hello!");
-
-        Message system = Message.ofSystem("你是一个富有创造力的、智慧的零售数据分析助手，你需要尽你所能回答用户提问。");
-        Message message = Message.of(
-            "I want to know the top 10 frontend margin of article about 1001 store yesterday");
-
-        Message message1 = Message.of(
-            "什么是门店库存周转天数");
+    public static List<ChatFunctionMessage> getFunctions() {
 
         Map<String, Object> properties = new HashMap<>();
 
@@ -150,31 +123,12 @@ class AzureOpenAiClientTest {
             .parameters(parameters)
             .build();
 
-        ChatCompletion chatCompletion = ChatCompletion.builder()
-            .model("gpt-4")
-            .temperature(0)
-            .messages(List.of(system, message))
-            .functions(List.of(getData))
-            .build();
+        ChatFunctionMessage functionMessage = new ChatFunctionMessage(
+            "get_data",
+            "The get data function is used to get retail dataset, base on tenant, date, dimension, indicators and filter by filter conditions,order by order conditions",
+            JSONObject.toJSONString(parameters)
+        );
+        return List.of(functionMessage);
 
-//        assertThat(client.chatCompletion(chatCompletion)).isEqualTo("Hello there! How can I assist you today?");
-
-        ChatCompletionResp resp = client.createChatCompletion(chatCompletion);
-
-        System.out.println(resp);
-    }
-
-    @Test
-    void testEmbeddings() {
-        var embedding = Embedding.builder()
-            .model("text-embedding-ada-002")
-            .input(List.of("The food was delicious and the waiter..."))
-            .build();
-
-        var response = client.createEmbedding(embedding);
-
-        assertThat(response).as("Response should not be null").isNotNull();
-        assertThat(response.getData()).as("Data list should have size 1").hasSize(1);
-        assertThat(response.getData().get(0).getEmbedding()).as("Embedding should have size 1536").hasSize(1536);
     }
 }

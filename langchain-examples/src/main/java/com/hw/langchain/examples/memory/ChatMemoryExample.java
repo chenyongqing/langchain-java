@@ -18,19 +18,19 @@
 
 package com.hw.langchain.examples.memory;
 
+import static com.hw.langchain.examples.utils.PrintUtils.println;
+
 import com.hw.langchain.chains.conversation.base.ConversationChain;
 import com.hw.langchain.chat.models.openai.ChatOpenAI;
 import com.hw.langchain.examples.runner.RunnableExample;
 import com.hw.langchain.memory.buffer.ConversationBufferMemory;
+import com.hw.langchain.memory.chat.message.histories.in.memory.ChatMessageHistory;
 import com.hw.langchain.prompts.chat.ChatPromptTemplate;
 import com.hw.langchain.prompts.chat.HumanMessagePromptTemplate;
 import com.hw.langchain.prompts.chat.MessagesPlaceholder;
 import com.hw.langchain.prompts.chat.SystemMessagePromptTemplate;
-
 import java.util.List;
 import java.util.Map;
-
-import static com.hw.langchain.examples.utils.PrintUtils.println;
 
 /**
  * @author HamaWhite
@@ -40,21 +40,29 @@ public class ChatMemoryExample {
 
     public static void main(String[] args) {
         var prompt = ChatPromptTemplate.fromMessages(List.of(
-                SystemMessagePromptTemplate.fromTemplate(
-                        "The following is a friendly conversation between a human and an AI. The AI is talkative and " +
-                                "provides lots of specific details from its context. If the AI does not know the " +
-                                "answer to a question, it truthfully says it does not know."),
-                new MessagesPlaceholder("history"),
-                HumanMessagePromptTemplate.fromTemplate("{input}")));
+            SystemMessagePromptTemplate.fromTemplate(
+                "The following is a friendly conversation between a human and an AI. The AI is talkative and " +
+                    "provides lots of specific details from its context. If the AI does not know the " +
+                    "answer to a question, it truthfully says it does not know."),
+            new MessagesPlaceholder("history"),
+            HumanMessagePromptTemplate.fromTemplate("{input}")));
 
-        var chat = ChatOpenAI.builder().temperature(0).build().init();
-        var memory = new ConversationBufferMemory(true);
+        var chat = ChatOpenAI.builder()
+            .openaiApiKey("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")
+            .temperature(0).build().init();
+
+        ChatMessageHistory chatMessageHistory = new ChatMessageHistory();
+
+        chatMessageHistory.addUserMessage("Hi there!");
+        chatMessageHistory.addAIMessage("Hi there! I'm doing well. How are you?");
+
+        var memory = new ConversationBufferMemory(true, chatMessageHistory);
         var conversation = new ConversationChain(chat, prompt, memory);
 
-        var output = conversation.predict(Map.of("input", "Hi there!"));
-        println(output);
+//        var output = conversation.predict(Map.of("input", "Hi there!"));
+//        println(output);
 
-        output = conversation.predict(Map.of("input", "I'm doing well! Just having a conversation with an AI."));
+        var   output = conversation.predict(Map.of("input", "I'm doing well! Just having a conversation with an AI."));
         println(output);
 
         output = conversation.predict(Map.of("input", "Tell me about yourself."));

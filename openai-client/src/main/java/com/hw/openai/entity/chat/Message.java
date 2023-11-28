@@ -18,15 +18,15 @@
 
 package com.hw.openai.entity.chat;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 /**
  * Message
@@ -47,21 +47,35 @@ public class Message implements Serializable {
     private Role role;
 
     /**
-     * The contents of the message.
-     * content should always exist in the call, even if it is null
+     * The contents of the message. content should always exist in the call, even if it is null
      */
     @JsonInclude()
     private String content;
 
     /**
-     * The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores,
-     * with a maximum length of 64 characters.
+     * The name of the author of this message. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64
+     * characters.
      */
     private String name;
+
+    @JsonProperty("function_call")
+    private FunctionCallResult functionCall;
 
     public Message(Role role, String content) {
         this.role = role;
         this.content = content;
+    }
+
+    public Message(Role role, String content, FunctionCallResult functionCall) {
+        this.role = role;
+        this.content = content;
+        this.functionCall = functionCall;
+    }
+
+    public Message(Role role, String content, String name) {
+        this.role = role;
+        this.content = content;
+        this.name = name;
     }
 
     public static Message of(String role, String content) {
@@ -78,6 +92,11 @@ public class Message implements Serializable {
 
     public static Message ofAssistant(String content) {
         return new Message(Role.ASSISTANT, content);
+    }
+
+    public static Message ofFunctionCall(FunctionCallResult functionCall) {
+
+        return new Message(Role.ASSISTANT, null, functionCall);
     }
 
     public static Message ofFunction(String content, String name) {

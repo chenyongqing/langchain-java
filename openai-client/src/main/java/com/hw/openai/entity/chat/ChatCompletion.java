@@ -119,4 +119,14 @@ public class ChatCompletion implements Serializable {
      * A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
      */
     private String user;
+
+
+    /**
+     * auto
+     */
+    @JsonProperty("function_call")
+    String functionCall;
+
+    List<ChatFunction> functions;
+
 }

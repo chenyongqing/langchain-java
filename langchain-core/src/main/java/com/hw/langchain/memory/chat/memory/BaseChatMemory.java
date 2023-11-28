@@ -18,16 +18,15 @@
 
 package com.hw.langchain.memory.chat.memory;
 
+import static com.hw.langchain.output.parsers.list.Utils.getPromptInputKey;
+
 import com.hw.langchain.memory.chat.message.histories.in.memory.ChatMessageHistory;
 import com.hw.langchain.schema.BaseChatMessageHistory;
 import com.hw.langchain.schema.BaseMemory;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.ArrayList;
 import java.util.Map;
-
-import static com.hw.langchain.output.parsers.list.Utils.getPromptInputKey;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * @author HamaWhite
@@ -60,9 +59,9 @@ public abstract class BaseChatMemory implements BaseMemory {
 
         String tmpOutputKey;
         if (outputKey == null) {
-            if (outputs.size() != 1) {
-                throw new IllegalArgumentException("One output key expected, got " + outputs.size());
-            }
+//            if (outputs.size() != 1) {
+//                throw new IllegalArgumentException("One output key expected, got " + outputs.size());
+//            }
             tmpOutputKey = new ArrayList<>(outputs.keySet()).get(0);
         } else {
             tmpOutputKey = this.outputKey;
@@ -80,8 +79,15 @@ public abstract class BaseChatMemory implements BaseMemory {
         String inputStr = inputOutputPair.getLeft();
         String outputStr = inputOutputPair.getRight();
 
+        String functionCall = outputs.get("function_call");
+
         chatMemory.addUserMessage(inputStr);
-        chatMemory.addAIMessage(outputStr);
+
+        if (StringUtils.isNotBlank(functionCall)) {
+            chatMemory.addFunctionCallMessage(functionCall);
+        } else {
+            chatMemory.addAIMessage(outputStr);
+        }
     }
 
     @Override

@@ -18,12 +18,12 @@
 
 package com.hw.langchain.examples.chains;
 
+import static com.hw.langchain.chains.api.meteo.OpenMeteoDocs.OPEN_METEO_DOCS;
+import static com.hw.langchain.examples.utils.PrintUtils.println;
+
 import com.hw.langchain.chains.api.base.ApiChain;
 import com.hw.langchain.examples.runner.RunnableExample;
 import com.hw.langchain.llms.openai.OpenAI;
-
-import static com.hw.langchain.chains.api.meteo.OpenMeteoDocs.OPEN_METEO_DOCS;
-import static com.hw.langchain.examples.utils.PrintUtils.println;
 
 /**
  * <a href="https://python.langchain.com/docs/modules/chains/popular/api">API chains</a>
@@ -33,8 +33,12 @@ import static com.hw.langchain.examples.utils.PrintUtils.println;
 @RunnableExample
 public class ApiChainExample {
 
+    private static final String OPENAI_API_KEY = "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";
+
     public static void main(String[] args) {
-        var llm = OpenAI.builder().temperature(0).build().init();
+        var llm = OpenAI.builder()
+            .openaiApiKey(OPENAI_API_KEY)
+            .temperature(0).build().init();
 
         var chain = ApiChain.fromLlmAndApiDocs(llm, OPEN_METEO_DOCS);
         var result = chain.run("What is the weather like right now in Hangzhou, China in degrees Fahrenheit?");

@@ -18,9 +18,19 @@
 
 package com.hw.langchain.chat.models.openai;
 
-import com.hw.langchain.schema.*;
+import com.alibaba.fastjson.JSONObject;
+import com.hw.langchain.schema.AIMessage;
+import com.hw.langchain.schema.BaseMessage;
+import com.hw.langchain.schema.ChatFunctionMessage;
+import com.hw.langchain.schema.ChatMessage;
+import com.hw.langchain.schema.FunctionMessage;
+import com.hw.langchain.schema.HumanMessage;
+import com.hw.langchain.schema.SystemMessage;
+import com.hw.openai.entity.chat.ChatChoice;
+import com.hw.openai.entity.chat.FunctionCallResult;
 import com.hw.openai.entity.chat.Message;
 import com.hw.openai.entity.chat.Role;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author HamaWhite
@@ -35,7 +45,12 @@ public class OpenAI {
             return Message.of(chatMessage.getRole(), message.getContent());
         } else if (message instanceof HumanMessage) {
             return Message.of(message.getContent());
-        } else if (message instanceof AIMessage) {
+        } else if (message instanceof AIMessage aiMessage) {
+            String functionCall = aiMessage.getFunctionCall();
+            if (StringUtils.isNotBlank(functionCall)) {
+                FunctionCallResult functionCallResult = JSONObject.parseObject(functionCall, FunctionCallResult.class);
+                return Message.ofFunctionCall(functionCallResult);
+            }
             return Message.ofAssistant(message.getContent());
         } else if (message instanceof SystemMessage) {
             return Message.ofSystem(message.getContent());
@@ -49,13 +64,20 @@ public class OpenAI {
     public static BaseMessage convertOpenAiToLangChain(Message message) {
         Role role = message.getRole();
         String content = message.getContent();
+        FunctionCallResult functionCall = message.getFunctionCall();
         switch (role) {
             case USER -> {
                 return new HumanMessage(content);
             }
             case ASSISTANT -> {
                 content = content != null ? content : "";
-                return new AIMessage(content);
+
+                if (functionCall != null) {
+                    return new ChatFunctionMessage(functionCall.getName(), functionCall.getArguments());
+                } else {
+                    return new AIMessage(content);
+                }
+
             }
             case SYSTEM -> {
                 return new SystemMessage(content);
@@ -64,5 +86,10 @@ public class OpenAI {
                 return new ChatMessage(content, role.getValue());
             }
         }
+    }
+
+    public static BaseMessage convertOpenAiToLangChain(ChatChoice chatChoice) {
+        Message message = chatChoice.getMessage();
+        return convertOpenAiToLangChain(message);
     }
 }

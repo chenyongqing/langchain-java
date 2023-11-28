@@ -42,6 +42,10 @@ public abstract class BaseSingleActionAgent {
      */
     public abstract List<String> inputKeys();
 
+    // Why is this a list? Shouldn't it be a map?
+    /**
+     * Return the output keys.
+     */
     public List<String> returnValues() {
         return List.of("output");
     }

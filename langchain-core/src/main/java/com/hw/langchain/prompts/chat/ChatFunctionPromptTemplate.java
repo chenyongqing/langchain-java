@@ -16,30 +16,28 @@
  * limitations under the License.
  */
 
-package com.hw.langchain.output.parsers.list;
+package com.hw.langchain.prompts.chat;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.hw.langchain.schema.BaseMessage;
+import com.hw.langchain.schema.ChatFunctionMessage;
+import com.hw.langchain.schema.ChatMessage;
 import java.util.Map;
 
 /**
- * @author HamaWhite
+ * @author yongqing.chen
  */
-public class Utils {
+public class ChatFunctionPromptTemplate extends BaseStringMessagePromptTemplate {
 
-    /**
-     * "stop" is a special key that can be passed as input but is not used to format the prompt.
-     */
-    public static String getPromptInputKey(Map<String, Object> inputs, List<String> memoryVariables) {
-        List<String> promptInputKeys = new ArrayList<>(inputs.keySet());
-        promptInputKeys.removeAll(memoryVariables);
-        promptInputKeys.remove("stop");
-        promptInputKeys.remove("functions");
+    private String name;
+    private String parameters;
 
-        if (promptInputKeys.size() != 1) {
-            throw new IllegalArgumentException("One input key expected, got " + promptInputKeys.size());
-        }
+    public static ChatFunctionPromptTemplate fromTemplate(String template) {
+        return BaseStringMessagePromptTemplate.fromTemplate(ChatFunctionPromptTemplate.class, template);
+    }
 
-        return promptInputKeys.get(0);
+    @Override
+    public BaseMessage format(Map<String, Object> kwargs) {
+        String text = prompt.format(kwargs);
+        return new ChatFunctionMessage(text, name, parameters);
     }
 }

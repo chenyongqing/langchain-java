@@ -18,10 +18,9 @@
 
 package com.hw.langchain.schema;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 /**
  * Base interface for chat message history, See `ChatMessageHistory` for default implementation.
@@ -47,6 +46,10 @@ public abstract class BaseChatMessageHistory {
      */
     public void addAIMessage(String message) {
         addMessage(new AIMessage(message));
+    }
+
+    public void addFunctionCallMessage(String functionCall) {
+        addMessage(new AIMessage(null, functionCall));
     }
 
     /**

@@ -109,6 +109,7 @@ public class AgentExecutor extends Chain {
     public Object takeNextStep(Map<String, BaseTool> nameToToolMap, Map<String, Object> inputs,
             List<Pair<AgentAction, String>> intermediateSteps) {
         // Call the LLM to see what to do.
+        // To get a more accurate execution plan, we can use a more powerful model GPT-4 to process. However, doing so will increase the cost of computing.
         AgentResult output = agent.plan(intermediateSteps, inputs);
         if (output instanceof AgentFinish) {
             return output;
@@ -150,6 +151,8 @@ public class AgentExecutor extends Chain {
         long startTime = System.currentTimeMillis();
 
         // We now enter the agent loop (until it returns something).
+        // Q: Why do we need to do this?
+        // A: Because the agent might return a tool that returns a value directly.
         while (shouldContinue(iterations, timeElapsed)) {
             var nextStepOutput = takeNextStep(nameToToolMap, inputs, intermediateSteps);
             LOG.debug("NextStepOutput: {}", nextStepOutput);

@@ -18,6 +18,7 @@
 
 package com.hw.langchain.chains.api.base;
 
+import com.hw.langchain.chat.models.openai.ChatOpenAI;
 import com.hw.langchain.llms.openai.OpenAI;
 
 import org.junit.jupiter.api.Disabled;
@@ -38,11 +39,16 @@ class ApiChainTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(ApiChainTest.class);
 
+    private static final String OPENAI_API_KEY = "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";
+    private static final String SERPAPI_API_KEY = "18401c486d0920d206d7abd8dc51a2d7e6047b65341ece53cefa6960870eee7d";
+
     @Test
     void testApiChain() {
-        var llm = OpenAI.builder().temperature(0).build().init();
+        var llm = OpenAI.builder().openaiApiKey(OPENAI_API_KEY).temperature(0).build().init();
 
-        var chain = ApiChain.fromLlmAndApiDocs(llm, OPEN_METEO_DOCS);
+
+        var chat = ChatOpenAI.builder().openaiApiKey(OPENAI_API_KEY).temperature(0).build().init();
+        var chain = ApiChain.fromLlmAndApiDocs(chat, OPEN_METEO_DOCS);
         var result = chain.run("What is the weather like right now in Hangzhou, China in degrees Fahrenheit?");
 
         // The current temperature in Hangzhou, China is 79.8°F with a windSpeed of 7.4 km/h and a wind direction of

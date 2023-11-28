@@ -69,4 +69,8 @@ public class Prompt {
     public static PromptTemplate PROMPT =
             new PromptTemplate(List.of("question"), _PROMPT_TEMPLATE);
 
+    public static void main(String[] args) {
+        System.out.println(PROMPT.getTemplate());
+    }
+
 }

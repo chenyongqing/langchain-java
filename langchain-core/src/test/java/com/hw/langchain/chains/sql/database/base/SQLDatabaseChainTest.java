@@ -18,24 +18,29 @@
 
 package com.hw.langchain.chains.sql.database.base;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.hw.langchain.base.language.BaseLanguageModel;
 import com.hw.langchain.llms.openai.OpenAI;
+import com.hw.langchain.llms.openai.OpenAIChat;
 import com.hw.langchain.sql.database.BasicDatabaseTest;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
- * <a href="https://github.com/sugarforever/LangChain-SQL-Chain/blob/main/Chat_with_SQL_Database.ipynb">LangChain-SQL-Chain</a>
- *
+ * <a
+ * href="https://github.com/sugarforever/LangChain-SQL-Chain/blob/main/Chat_with_SQL_Database.ipynb">LangChain-SQL-Chain</a>
+ * <p>
  * SQLDatabaseChainTest
+ *
  * @author HamaWhite
  */
 @Disabled("Test requires costly OpenAI calls, can be run manually.")
 class SQLDatabaseChainTest extends BasicDatabaseTest {
+
+    private static final String OPENAI_API_KEY = "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";
+
 
     protected static BaseLanguageModel llm;
     protected static SQLDatabaseChain chain;
@@ -44,10 +49,11 @@ class SQLDatabaseChainTest extends BasicDatabaseTest {
     public static void setup() {
         BasicDatabaseTest.setup();
 
-        llm = OpenAI.builder()
-                .temperature(0)
-                .build()
-                .init();
+        llm = OpenAIChat.builder()
+            .openaiApiKey(OPENAI_API_KEY)
+            .temperature(0)
+            .build()
+            .init();
 
         chain = SQLDatabaseChain.fromLLM(llm, database);
     }
@@ -92,7 +98,7 @@ class SQLDatabaseChainTest extends BasicDatabaseTest {
     void testSixthRun() {
         String actual = chain.run("Who got zero score? Show me her parent's contact information.");
         String expected =
-                "The parent of the student who got zero score is Tracy and their contact information is 088124.";
+            "The parent of the student who got zero score is Tracy and their contact information is 088124.";
         assertEquals(expected, actual);
     }
 }
